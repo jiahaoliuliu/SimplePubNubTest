@@ -1,10 +1,12 @@
 package com.jiahaoliuliu.simplepubnubtest;
 
+import android.content.Context;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import com.pubnub.api.Callback;
 import com.pubnub.api.Pubnub;
@@ -21,6 +23,7 @@ public class MainActivity extends AppCompatActivity {
     private Button mPublishButton;
 
     // Internal variables
+    private Context mContext;
     private Pubnub mPubnub;
 
     @Override
@@ -28,9 +31,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Link the views
-
-        // Initialize PubNub
+        // Initialize variables
+        mContext = this;
         mPubnub = new Pubnub(
                 APISecret.PUBLISH_KEY,       // Publish key
                 APISecret.SUBSCRIBE_KEY,     // Subscribe key
@@ -60,8 +62,15 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 @Override
-                public void successCallback(String channel, Object message) {
+                public void successCallback(String channel, final Object message) {
                     // This is called when a new message arrives when the message arrives
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(mContext, message.toString(), Toast.LENGTH_SHORT).show();
+                        }
+                    });
+
                     Log.v(TAG, "Subscribe : " + channel + " : " + message.getClass() + " : " + message.toString());
                 }
 
