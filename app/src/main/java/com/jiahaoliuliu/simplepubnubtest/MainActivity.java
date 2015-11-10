@@ -23,13 +23,15 @@ import com.pubnub.api.PubnubException;
  * 4. At the moment when the user unsubscribe a channel, the user will not receive any message
  * 5. If the user unsubscribes a channel and then, subscribes again, he will lost all the previous messages
  * 6. The presence works exactly as a channel. The user is subscribed to the channel channelName+ "-pnpres"
- *
+ * 7. After the user has unsubscribed a channel, he is still able to publish message to that channel
  */
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
 
     private static final String DEFAULT_CHANNEL = "jiahaoliuliu";
+
+    private static final Long YESTERDAY = 1447099666000L;
 
     // Views
     private Button mSubscribeButton;
@@ -39,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
     // Internal variables
     private Context mContext;
     private Pubnub mPubnub;
+    private int mMessageCounter = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -148,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        mPubnub.publish(DEFAULT_CHANNEL, "Hello jiahaoliuliu from the PubNub Java SDK!", new Callback() {
+        mPubnub.publish(DEFAULT_CHANNEL, "Hello jiahaoliuliu from the PubNub Java SDK! " + mMessageCounter++, new Callback() {
             @Override
             public void successCallback(String channel, Object message) {
                 Log.v(TAG, "Message published " + message.toString());
@@ -208,6 +211,16 @@ public class MainActivity extends AppCompatActivity {
         } catch (PubnubException e) {
             Log.e(TAG, "Error subscribing", e);
         }
+
+        // Get the history information
+        mPubnub.history(DEFAULT_CHANNEL, YESTERDAY, -1, 1000, true, new Callback() {
+            public void successCallback(String channel, Object response) {
+                Log.v(TAG, "Historical data received " + response.toString());
+            }
+            public void errorCallback(String channel, PubnubError error) {
+                Log.v(TAG, "Error receiving historical data " + error.toString());
+            }
+        });
     }
 
     private void unsubscribe() {
