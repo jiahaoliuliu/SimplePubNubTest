@@ -14,6 +14,17 @@ import com.pubnub.api.Pubnub;
 import com.pubnub.api.PubnubError;
 import com.pubnub.api.PubnubException;
 
+/**
+ * Class used to check how the SDK provided by PubNub works. The data collected so far are:
+ * 1. The user must subscribe to a channel to receive a message
+ * 2. When the user publishes any message to a channel, all the users will receive that message, including
+ * the sender itself
+ * 3. The user can unsubscribe to a channel in any moment
+ * 4. At the moment when the user unsubscribe a channel, the user will not receive any message
+ * 5. If the user unsubscribes a channel and then, subscribes again, he will lost all the previous messages
+ * 6. The presence works exactly as a channel. The user is subscribed to the channel channelName+ "-pnpres"
+ *
+ */
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
