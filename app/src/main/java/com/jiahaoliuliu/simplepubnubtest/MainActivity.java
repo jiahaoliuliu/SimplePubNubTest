@@ -20,11 +20,11 @@ public class MainActivity extends AppCompatActivity {
 
         // Initialize PubNub
         final Pubnub pubnub = new Pubnub(
-                "demo",     // Publish key
-                "demo",     // Subscribe key
-                "",         // Secret key
-                "",         // Cipher key
-                false       // SSL on?
+                APISecret.PUBLISH_KEY,       // Publish key
+                APISecret.SUBSCRIBE_KEY,     // Subscribe key
+                "",                          // Secret key
+                "",                          // Cipher key
+                false                        // SSL on?
         );
 
         try {
@@ -42,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 public void reconnectCallback(String channel, Object message) {
-                    Log.v(TAG, "Subscribe : REconnect on channel: " + channel + " : " + message.getClass() + " : "
+                    Log.v(TAG, "Subscribe : Reconnect on channel: " + channel + " : " + message.getClass() + " : "
                     + message.toString());
                 }
 
@@ -54,6 +54,18 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void errorCallback(String channel, PubnubError error) {
                     Log.e(TAG, "Subscribe : Error on channel " + channel + " : " + error.toString());
+                }
+            });
+
+            pubnub.time(new Callback() {
+                @Override
+                public void successCallback(String channel, Object message) {
+                    Log.v(TAG, "Success connected " + message.toString());
+                }
+
+                @Override
+                public void errorCallback(String channel, PubnubError error) {
+                    Log.e(TAG, "Error on connect" + error.toString());
                 }
             });
         } catch (PubnubException e) {

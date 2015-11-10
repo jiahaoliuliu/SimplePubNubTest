@@ -32,4 +32,4 @@ proguard/
 crashlytics-build.properties
 
 #API Keys
-app/src/main/java/com/jiahaoliuliu/simpleziggeointegration/APIKeys.java
+app/src/main/java/com/jiahaoliuliu/simplepubnubtest/APISecret.java
