@@ -1,6 +1,7 @@
 package com.jiahaoliuliu.simplepubnubtest;
 
 import android.content.Context;
+import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -13,6 +14,17 @@ import com.pubnub.api.Pubnub;
 import com.pubnub.api.PubnubError;
 import com.pubnub.api.PubnubException;
 
+/**
+ * Class used to check how the SDK provided by PubNub works. The data collected so far are:
+ * 1. The user must subscribe to a channel to receive a message
+ * 2. When the user publishes any message to a channel, all the users will receive that message, including
+ * the sender itself
+ * 3. The user can unsubscribe to a channel in any moment
+ * 4. At the moment when the user unsubscribe a channel, the user will not receive any message
+ * 5. If the user unsubscribes a channel and then, subscribes again, he will lost all the previous messages
+ * 6. The presence works exactly as a channel. The user is subscribed to the channel channelName+ "-pnpres"
+ *
+ */
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = "MainActivity";
@@ -20,7 +32,9 @@ public class MainActivity extends AppCompatActivity {
     private static final String DEFAULT_CHANNEL = "jiahaoliuliu";
 
     // Views
+    private Button mSubscribeButton;
     private Button mPublishButton;
+    private Button mUnsubscribeButton;
 
     // Internal variables
     private Context mContext;
@@ -41,13 +55,124 @@ public class MainActivity extends AppCompatActivity {
                 false                        // SSL on?
         );
 
+        // Set the device id
+        String uuid = Settings.Secure.getString(mContext.getContentResolver(), Settings.Secure.ANDROID_ID);
+        mPubnub.setUUID(uuid);
+
+//        // Check if it is connected or not
+//        mPubnub.time(new Callback() {
+//            @Override
+//            public void successCallback(String channel, Object message) {
+//                Log.v(TAG, "Success connected " + message.toString());
+//            }
+//
+//            @Override
+//            public void errorCallback(String channel, PubnubError error) {
+//                Log.e(TAG, "Error on connect" + error.toString());
+//            }
+//        });
+
+        // Presence
+        // The presence works exactly as another channel. When the app creates presence,
+        // the app will subscribe the channel channelName + "-pnpres". The message is an json data
+        // i.e. {"action":"join","timestamp":1447184765,"uuid":"db7b661b-376a-4652-8955-70833b22a6e4","occupancy":4}
+        try {
+            mPubnub.presence(DEFAULT_CHANNEL, new Callback() {
+                @Override
+                public void connectCallback(String channel, Object message) {
+                    Log.v(TAG, "CONNECT on channel:" + channel
+                            + " : " + message.getClass() + " : "
+                            + message.toString());
+                }
+
+                @Override
+                public void disconnectCallback(String channel, Object message) {
+                    Log.v(TAG, "DISCONNECT on channel:" + channel
+                            + " : " + message.getClass() + " : "
+                            + message.toString());
+                }
+
+                @Override
+                public void reconnectCallback(String channel, Object message) {
+                    Log.v(TAG, "RECONNECT on channel:" + channel
+                            + " : " + message.getClass() + " : "
+                            + message.toString());
+                }
+
+                @Override
+                public void successCallback(String channel, Object message) {
+                    Log.v(TAG, "New state arrived " + channel + " : "
+                            + message.getClass() + " : " + message.toString());
+                }
+
+                @Override
+                public void errorCallback(String channel, PubnubError error) {
+                    Log.e(TAG, "ERROR on channel " + channel
+                            + " : " + error.toString());
+                }
+            });
+        } catch (PubnubException e) {
+            Log.e(TAG, "Error detecting the presence ", e);
+        }
+
+        // Link the views
+        mSubscribeButton = (Button)findViewById(R.id.subscribe_button);
+        mSubscribeButton.setOnClickListener(mOnClickListener);
+
+        mPublishButton = (Button)findViewById(R.id.publish_button);
+        mPublishButton.setOnClickListener(mOnClickListener);
+
+        mUnsubscribeButton = (Button)findViewById(R.id.unsubscribe_button);
+        mUnsubscribeButton.setOnClickListener(mOnClickListener);
+    }
+
+    private View.OnClickListener mOnClickListener = new View.OnClickListener(){
+        @Override
+        public void onClick(View view) {
+            switch(view.getId()) {
+                case R.id.subscribe_button:
+                    subscribe();
+                    break;
+                case R.id.publish_button:
+                    publishDefaultMessage();
+                    break;
+                case R.id.unsubscribe_button:
+                    unsubscribe();
+                    break;
+            }
+        }
+    };
+
+    private void publishDefaultMessage() {
+        if (mPubnub == null) {
+            return;
+        }
+
+        mPubnub.publish(DEFAULT_CHANNEL, "Hello jiahaoliuliu from the PubNub Java SDK!", new Callback() {
+            @Override
+            public void successCallback(String channel, Object message) {
+                Log.v(TAG, "Message published " + message.toString());
+            }
+
+            @Override
+            public void errorCallback(String channel, PubnubError error) {
+                Log.e(TAG, "Error publishing the message " + error.toString());
+            }
+        });
+    }
+
+    private void subscribe() {
+        if (mPubnub == null) {
+            return;
+        }
+
         try {
             mPubnub.subscribe(DEFAULT_CHANNEL, new Callback() {
 
                 @Override
                 public void connectCallback(String channel, Object message) {
                     // This is called when the app has connected to the channel
-                    mPubnub.publish(DEFAULT_CHANNEL, DEFAULT_CHANNEL + " correctly connected", new Callback(){});
+                    Log.v(TAG, "Correctly connected to the channel");
                 }
 
                 @Override
@@ -58,7 +183,7 @@ public class MainActivity extends AppCompatActivity {
 
                 public void reconnectCallback(String channel, Object message) {
                     Log.v(TAG, "Subscribe : Reconnect on channel: " + channel + " : " + message.getClass() + " : "
-                    + message.toString());
+                            + message.toString());
                 }
 
                 @Override
@@ -83,46 +208,13 @@ public class MainActivity extends AppCompatActivity {
         } catch (PubnubException e) {
             Log.e(TAG, "Error subscribing", e);
         }
-
-//        // Check if it is connected or not
-//        mPubnub.time(new Callback() {
-//            @Override
-//            public void successCallback(String channel, Object message) {
-//                Log.v(TAG, "Success connected " + message.toString());
-//            }
-//
-//            @Override
-//            public void errorCallback(String channel, PubnubError error) {
-//                Log.e(TAG, "Error on connect" + error.toString());
-//            }
-//        });
-
-        // Link the views
-        mPublishButton = (Button)findViewById(R.id.publish_button);
-        mPublishButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                publishDefaultMessage();
-            }
-        });
-
     }
 
-    private void publishDefaultMessage() {
+    private void unsubscribe() {
         if (mPubnub == null) {
-            throw new IllegalArgumentException("The pub nub must be initialized");
+            return;
         }
 
-        mPubnub.publish(DEFAULT_CHANNEL, "Hello jiahaoliuliu from the PubNub Java SDK!", new Callback() {
-            @Override
-            public void successCallback(String channel, Object message) {
-                Log.v(TAG, "Message published " + message.toString());
-            }
-
-            @Override
-            public void errorCallback(String channel, PubnubError error) {
-                Log.e(TAG, "Error publishing the message " + error.toString());
-            }
-        });
+        mPubnub.unsubscribe(DEFAULT_CHANNEL);
     }
 }
