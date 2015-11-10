@@ -2,4 +2,6 @@
     <string name="app_name">SimplePubNubTest</string>
 
     <string name="main_activity_publish">Publish</string>
+    <string name="main_activity_subscribe">Subscribe</string>
+    <string name="main_activity_unsubscribe">Unsubscribe</string>
 </resources>
