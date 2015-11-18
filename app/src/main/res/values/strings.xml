@@ -3,5 +3,8 @@
 
     <string name="main_activity_publish">Publish</string>
     <string name="main_activity_subscribe">Subscribe</string>
+    <string name="main_activity_history">History</string>
+    <string name="main_activity_channels_list">Channels List</string>
+    <string name="main_activity_users_list">Users List</string>
     <string name="main_activity_unsubscribe">Unsubscribe</string>
 </resources>
