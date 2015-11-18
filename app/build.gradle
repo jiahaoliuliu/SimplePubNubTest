@@ -25,4 +25,7 @@ dependencies {
 
     compile 'com.pubnub:pubnub-android:3.7.5'
     //'com.pubnub:pubnub-android-debug:3.7.+' For the debug version
+
+    compile 'com.google.android.gms:play-services:7.8.0'
+
 }

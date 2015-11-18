@@ -33,3 +33,4 @@ crashlytics-build.properties
 
 #API Keys
 app/src/main/java/com/jiahaoliuliu/simplepubnubtest/APISecret.java
+app/google-services.json
