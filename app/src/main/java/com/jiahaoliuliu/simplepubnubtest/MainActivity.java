@@ -1,6 +1,8 @@
 package com.jiahaoliuliu.simplepubnubtest;
 
 import android.content.Context;
+import android.content.Intent;
+import android.os.ResultReceiver;
 import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -47,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
     private Pubnub mPubnub;
     private int mMessageCounter = 0;
     private String uuid;
+    private String gcmToken;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -67,10 +70,6 @@ public class MainActivity extends AppCompatActivity {
         uuid = Settings.Secure.getString(mContext.getContentResolver(), Settings.Secure.ANDROID_ID);
         mPubnub.setUUID(uuid);
 
-        // Get the device token
-        InstanceID instanceID = InstanceID.getInstance(this);
-        String token = instanceID.getToken(getString(R.string.gcm_defaultSenderId), GoogleCloudMessaging.INSTANCE_ID_SCOPE, null);
-
         // Link the views
         mSubscribeButton = (Button)findViewById(R.id.subscribe_button);
         mSubscribeButton.setOnClickListener(mOnClickListener);
@@ -89,6 +88,40 @@ public class MainActivity extends AppCompatActivity {
 
         mUnsubscribeButton = (Button)findViewById(R.id.unsubscribe_button);
         mUnsubscribeButton.setOnClickListener(mOnClickListener);
+
+        // Register for token
+        Intent startRegistrationIntentServiceIntent = new Intent(this, RegistrationIntentService.class);
+        startRegistrationIntentServiceIntent.putExtra(
+                RegistrationIntentService.INTENT_KEY_UPDATE_SERVER_TOKEN_CALLBACK, new ResultReceiver(null) {
+                    @Override
+                    protected void onReceiveResult(int resultCode, Bundle resultData) {
+                        if (resultData == null) {
+                            Log.e(TAG, "Error getting gcm tokens. The result data is null");
+                            return;
+                        }
+                        gcmToken = resultData.getString(RegistrationIntentService.BUNDLE_KEY_GCM_TOKEN);
+                        Log.v(TAG, "Token received " + gcmToken);
+                        mPubnub.enablePushNotificationsOnChannel(DEFAULT_CHANNEL, gcmToken, new Callback() {
+                            @Override
+                            public void successCallback(String channel, Object message) {
+                                Log.v(TAG, "Push notification correctly enabled for the channel " + DEFAULT_CHANNEL +
+                                    ". " + message);
+                                displayTextToUser("Push notification correctly enabled for the channel " + DEFAULT_CHANNEL +
+                                        ". " + message);
+                            }
+
+                            @Override
+                            public void errorCallback(String channel, PubnubError error) {
+                                Log.e(TAG, "Error enabling the push notification for the channel " + DEFAULT_CHANNEL +
+                                    ". " + error.getErrorString());
+                                displayTextToUser("Error enabling the push notification for the channel " + DEFAULT_CHANNEL +
+                                        ". " + error.getErrorString());
+                            }
+                        });
+                    }
+                });
+
+        startService(startRegistrationIntentServiceIntent);
 
     }
 
