@@ -38,14 +38,14 @@
             </intent-filter>
         </receiver>
 
-        <receiver
-            android:name=".GcmBroadcastReceiver"
+        <service
+            android:name=".MyGcmListenerService"
             android:exported="false" >
             <intent-filter>
                 <action android:name="com.google.android.c2dm.intent.RECEIVE" />
                 <action android:name="com.google.android.c2dm.intent.REGISTRATION" />
             </intent-filter>
-        </receiver>
+        </service>
         <service
             android:name=".MyInstanceIdListenerService"
             android:exported="false" >
