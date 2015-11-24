@@ -1,18 +1,12 @@
 package com.jiahaoliuliu.simplepubnubtest;
 
-import android.content.Context;
 import android.content.Intent;
-import android.provider.Settings;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.Toast;
 
 import com.pubnub.api.Callback;
-import com.pubnub.api.Pubnub;
 import com.pubnub.api.PubnubError;
 import com.pubnub.api.PubnubException;
 
@@ -27,7 +21,7 @@ import com.pubnub.api.PubnubException;
  * 6. The presence works exactly as a channel. The user is subscribed to the channel channelName+ "-pnpres"
  * 7. After the user has unsubscribed a channel, he is still able to publish message to that channel
  */
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity {
 
     private static final String TAG = "MainActivity";
 
@@ -45,29 +39,12 @@ public class MainActivity extends AppCompatActivity {
     private Button mUnsubscribeButton;
 
     // Internal variables
-    private Context mContext;
-    private Pubnub mPubnub;
     private int mMessageCounter = 0;
-    private String uuid;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-        // Initialize variables
-        mContext = this;
-        mPubnub = new Pubnub(
-                APISecret.PUBLISH_KEY,       // Publish key
-                APISecret.SUBSCRIBE_KEY,     // Subscribe key
-                "",                          // Secret key
-                "",                          // Cipher key
-                false                        // SSL on?
-        );
-
-        // Set the device id
-        uuid = Settings.Secure.getString(mContext.getContentResolver(), Settings.Secure.ANDROID_ID);
-        mPubnub.setUUID(uuid);
 
         // Link the views
         mSubscribeButton = (Button)findViewById(R.id.subscribe_button);
@@ -312,19 +289,4 @@ public class MainActivity extends AppCompatActivity {
         Log.v(TAG, "User unsubscribed from the channel " + DEFAULT_CHANNEL);
         displayTextToUser("User unsubscribed from the channel " + DEFAULT_CHANNEL);
     }
-
-    private void displayTextToUser(final String text) {
-        if (TextUtils.isEmpty(text)) {
-            Log.e(TAG, "Cannot display empty text to the user");
-            return;
-        }
-
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(mContext, text, Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
 }
