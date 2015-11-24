@@ -12,10 +12,17 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.google.gson.Gson;
+import com.jiahaoliuliu.simplepubnubtest.model.Message;
 import com.pubnub.api.Callback;
 import com.pubnub.api.Pubnub;
 import com.pubnub.api.PubnubError;
 import com.pubnub.api.PubnubException;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.Date;
 
 /**
  * Class used to check how the SDK provided by PubNub works. The data collected so far are:
@@ -50,6 +57,7 @@ public class MainActivity extends AppCompatActivity {
     private int mMessageCounter = 0;
     private String uuid;
     private String gcmToken;
+    private Gson mGson;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,10 +69,11 @@ public class MainActivity extends AppCompatActivity {
         mPubnub = new Pubnub(
                 APISecret.PUBLISH_KEY,       // Publish key
                 APISecret.SUBSCRIBE_KEY,     // Subscribe key
-                "",                          // Secret key
+                APISecret.SECRET_KEY,        // Secret key
                 "",                          // Cipher key
                 false                        // SSL on?
         );
+        mGson = new Gson();
 
         // Set the device id
         uuid = Settings.Secure.getString(mContext.getContentResolver(), Settings.Secure.ANDROID_ID);
@@ -89,39 +98,18 @@ public class MainActivity extends AppCompatActivity {
         mUnsubscribeButton = (Button)findViewById(R.id.unsubscribe_button);
         mUnsubscribeButton.setOnClickListener(mOnClickListener);
 
-        // Register for token
-        Intent startRegistrationIntentServiceIntent = new Intent(this, RegistrationIntentService.class);
-        startRegistrationIntentServiceIntent.putExtra(
-                RegistrationIntentService.INTENT_KEY_UPDATE_SERVER_TOKEN_CALLBACK, new ResultReceiver(null) {
-                    @Override
-                    protected void onReceiveResult(int resultCode, Bundle resultData) {
-                        if (resultData == null) {
-                            Log.e(TAG, "Error getting gcm tokens. The result data is null");
-                            return;
-                        }
-                        gcmToken = resultData.getString(RegistrationIntentService.BUNDLE_KEY_GCM_TOKEN);
-                        Log.v(TAG, "Token received " + gcmToken);
-                        mPubnub.enablePushNotificationsOnChannel(DEFAULT_CHANNEL, gcmToken, new Callback() {
-                            @Override
-                            public void successCallback(String channel, Object message) {
-                                Log.v(TAG, "Push notification correctly enabled for the channel " + DEFAULT_CHANNEL +
-                                    ". " + message);
-                                displayTextToUser("Push notification correctly enabled for the channel " + DEFAULT_CHANNEL +
-                                        ". " + message);
-                            }
+        // Get the channel groups that the user has subscribed
+        mPubnub.channelGroupListChannels(uuid, new Callback() {
+            @Override
+            public void successCallback(String channel, Object message) {
+                Log.v(TAG, "Channel group retrieved " + message);
+            }
 
-                            @Override
-                            public void errorCallback(String channel, PubnubError error) {
-                                Log.e(TAG, "Error enabling the push notification for the channel " + DEFAULT_CHANNEL +
-                                    ". " + error.getErrorString());
-                                displayTextToUser("Error enabling the push notification for the channel " + DEFAULT_CHANNEL +
-                                        ". " + error.getErrorString());
-                            }
-                        });
-                    }
-                });
-
-        startService(startRegistrationIntentServiceIntent);
+            @Override
+            public void errorCallback(String channel, PubnubError error) {
+                Log.e(TAG, "Error retrieving the group of channels " + error.getErrorString());
+            }
+        });
 
     }
 
@@ -183,6 +171,10 @@ public class MainActivity extends AppCompatActivity {
                 public void successCallback(String channel, final Object message) {
                     // This is called when a new message arrives when the message arrives
                     Log.v(TAG, "Subscribe : " + channel + " : " + message.getClass() + " : " + message.toString());
+
+                    Message messageReceived = mGson.fromJson(message.toString(), Message.class);
+                    Log.v(TAG, "Message received " + messageReceived.toString());
+
                     displayTextToUser("New message from the channel " + channel + " received. The message is " + message);
                 }
 
@@ -240,6 +232,40 @@ public class MainActivity extends AppCompatActivity {
         } catch (PubnubException e) {
             Log.e(TAG, "Error detecting the presence ", e);
         }
+
+        // Register for token
+        Intent startRegistrationIntentServiceIntent = new Intent(this, RegistrationIntentService.class);
+        startRegistrationIntentServiceIntent.putExtra(
+            RegistrationIntentService.INTENT_KEY_UPDATE_SERVER_TOKEN_CALLBACK, new ResultReceiver(null) {
+                @Override
+                protected void onReceiveResult(int resultCode, Bundle resultData) {
+                    if (resultData == null) {
+                        Log.e(TAG, "Error getting gcm tokens. The result data is null");
+                        return;
+                    }
+                    gcmToken = resultData.getString(RegistrationIntentService.BUNDLE_KEY_GCM_TOKEN);
+                    Log.v(TAG, "Token received " + gcmToken);
+                    mPubnub.enablePushNotificationsOnChannel(DEFAULT_CHANNEL, gcmToken, new Callback() {
+                        @Override
+                        public void successCallback(String channel, Object message) {
+                            Log.v(TAG, "Push notification correctly enabled for the channel " + DEFAULT_CHANNEL +
+                                    ". " + message);
+                            displayTextToUser("Push notification correctly enabled for the channel " + DEFAULT_CHANNEL +
+                                    ". " + message);
+                        }
+
+                        @Override
+                        public void errorCallback(String channel, PubnubError error) {
+                            Log.e(TAG, "Error enabling the push notification for the channel " + DEFAULT_CHANNEL +
+                                    ". " + error.getErrorString());
+                            displayTextToUser("Error enabling the push notification for the channel " + DEFAULT_CHANNEL +
+                                    ". " + error.getErrorString());
+                        }
+                    });
+                }
+            });
+        startService(startRegistrationIntentServiceIntent);
+
     }
 
     // Publish
@@ -248,10 +274,30 @@ public class MainActivity extends AppCompatActivity {
             return;
         }
 
-        mPubnub.publish(DEFAULT_CHANNEL, "Hello jiahaoliuliu from the PubNub Java SDK! " + mMessageCounter++, new Callback() {
+        Message dummyMessage = new Message();
+        dummyMessage.setMessageId(String.valueOf(mMessageCounter));
+        dummyMessage.setMessageContent("This is a simple message");
+        dummyMessage.setSenderId("Jiahao Liu Liu");
+        dummyMessage.setTime(new Date().getTime());
+
+        String dummyMessageJson = mGson.toJson(dummyMessage);
+
+        Log.v(TAG, "Dummy message " + dummyMessageJson);
+
+        JSONObject jsonObject = null;
+        try {
+            jsonObject = new JSONObject(dummyMessageJson);
+        } catch (JSONException e) {
+            Log.e(TAG, "Error parsing the json object", e);
+            return;
+        }
+
+        mPubnub.publish(DEFAULT_CHANNEL, jsonObject
+                , new Callback() {
             @Override
             public void successCallback(String channel, Object message) {
                 Log.v(TAG, "Message published " + message.toString());
+                mMessageCounter++;
                 displayTextToUser("Message correctly published on the channel " + channel + ". " + message);
             }
 

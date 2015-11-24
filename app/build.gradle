@@ -30,4 +30,7 @@ dependencies {
     // Google play services for GCM push notifications
     compile 'com.google.android.gms:play-services:8.3.0'
 
+    // Gson for json parsing
+    compile 'com.google.code.gson:gson:2.4'
+
 }
