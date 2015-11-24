@@ -45,28 +45,30 @@
                 android:layout_weight="1"
                 />
 
-            <LinearLayout
+            <Button
+                android:id="@+id/channels_list_button"
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
-                android:orientation="vertical"
+                android:text="@string/main_activity_channels_list"
                 android:layout_weight="1"
-                >
-                <Button
-                    android:id="@+id/channels_list_button"
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:text="@string/main_activity_channels_list"
-                    android:layout_weight="1"
-                    />
+                />
 
-                <Button
-                    android:id="@+id/users_list_button"
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:text="@string/main_activity_users_list"
-                    android:layout_weight="1"
-                    />
-            </LinearLayout>
+            <Button
+                android:id="@+id/users_list_button"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:text="@string/main_activity_users_list"
+                android:layout_weight="1"
+                />
+
+            <Button
+                android:id="@+id/channels_group_button"
+                android:layout_width="match_parent"
+                android:layout_height="0dp"
+                android:text="@string/main_activity_chanenls_group"
+                android:layout_weight="1"
+                />
+
         </LinearLayout>
     </LinearLayout>
 

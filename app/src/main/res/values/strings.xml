@@ -7,4 +7,9 @@
     <string name="main_activity_channels_list">Channels List</string>
     <string name="main_activity_users_list">Users List</string>
     <string name="main_activity_unsubscribe">Unsubscribe</string>
+    <string name="main_activity_chanenls_group">Channels group</string>
+    <string name="title_activity_channels_group">ChannelsGroupActivity</string>
+
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
 </resources>

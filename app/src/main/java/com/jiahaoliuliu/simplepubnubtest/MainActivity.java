@@ -1,6 +1,7 @@
 package com.jiahaoliuliu.simplepubnubtest;
 
 import android.content.Context;
+import android.content.Intent;
 import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -40,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
     private Button mHistoryButton;
     private Button mChannelsListButton;
     private Button mUsersListButton;
+    private Button mChannelsGroupButton;
     private Button mUnsubscribeButton;
 
     // Internal variables
@@ -67,10 +69,6 @@ public class MainActivity extends AppCompatActivity {
         uuid = Settings.Secure.getString(mContext.getContentResolver(), Settings.Secure.ANDROID_ID);
         mPubnub.setUUID(uuid);
 
-        // Get the device token
-        InstanceID instanceID = InstanceID.getInstance(this);
-        String token = instanceID.getToken(getString(R.string.gcm_defaultSenderId), GoogleCloudMessaging.INSTANCE_ID_SCOPE, null);
-
         // Link the views
         mSubscribeButton = (Button)findViewById(R.id.subscribe_button);
         mSubscribeButton.setOnClickListener(mOnClickListener);
@@ -86,6 +84,9 @@ public class MainActivity extends AppCompatActivity {
 
         mUsersListButton = (Button)findViewById(R.id.users_list_button);
         mUsersListButton.setOnClickListener(mOnClickListener);
+
+        mChannelsGroupButton = (Button)findViewById(R.id.channels_group_button);
+        mChannelsGroupButton.setOnClickListener(mOnClickListener);
 
         mUnsubscribeButton = (Button)findViewById(R.id.unsubscribe_button);
         mUnsubscribeButton.setOnClickListener(mOnClickListener);
@@ -110,6 +111,11 @@ public class MainActivity extends AppCompatActivity {
                     break;
                 case R.id.users_list_button:
                     showUsersList();
+                    break;
+                case R.id.channels_group_button:
+                    // Open channels group screen
+                    Intent startChannelsGroupActivityIntent = new Intent(mContext, ChannelsGroupActivity.class);
+                    startActivity(startChannelsGroupActivityIntent);
                     break;
                 case R.id.unsubscribe_button:
                     unsubscribe();
